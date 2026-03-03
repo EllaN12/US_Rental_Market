@@ -55,8 +55,8 @@ def load_data():
         
         # Add cluster names
         df['cluster_name'] = df['prediction_label'].map({
-            0: 'Essential Rentals',
-            1: 'Amenity-Packed Rentals'
+            0: 'Amenity-Packed Rentals',
+            1: 'Essentials Rentals'
         })
         
         # Calculate derived fields
@@ -119,7 +119,7 @@ with st.sidebar:
         "Clusters",
         [0, 1],
         default=[0, 1],
-        format_func=lambda x: f"Cluster {x} ({'Budget' if x==0 else 'Premium'})",
+        format_func=lambda x: f"Cluster {x} ({'Amenity-Packed Rentals' if x==0 else 'Essentials Rentals'})",
         key=f"clusters_{st.session_state.reset_trigger}"
     )
     
@@ -172,7 +172,7 @@ with st.sidebar:
         if len(cluster_data) == 0:
             continue
         
-        cluster_name = "Budget" if cluster_id == 0 else "Premium"
+        cluster_name = "Amenity-Packed Rentals" if cluster_id == 0 else "Essentials Rentals"
         
         st.markdown(f"### {cluster_name}")
         st.markdown(f"""
@@ -226,7 +226,7 @@ def scatter_map_(df, selected_state=None, selected_city=None):
     
     fig = go.Figure()
     
-    # Cluster 0 - Essential Rentals
+    # Cluster 0 - Amenity-Packed Rentals
     cluster0 = df[df['prediction_label'] == 0]
     if len(cluster0) > 0:
         fig.add_trace(go.Scattermapbox(
@@ -246,7 +246,7 @@ def scatter_map_(df, selected_state=None, selected_city=None):
             ]],
             hovertemplate=
                 '<b>%{customdata[0]}, %{customdata[1]}</b><br>' +
-                '<b>Essential Rentals</b><br><br>' +
+                '<b>Amenity-Packed Rentals</b><br><br>' +
                 'Price: $%{customdata[2]:,.0f}<br>' +
                 'Sq Ft: %{customdata[3]:,.0f}<br>' +
                 '$/SqFt: $%{customdata[9]:.2f}<br><br>' +
@@ -255,10 +255,10 @@ def scatter_map_(df, selected_state=None, selected_city=None):
                 'Luxury: %{customdata[6]:.0f} | Convenience: %{customdata[7]:.0f}<br>' +
                 '<b>Total: %{customdata[8]:.0f}</b>' +
                 '<extra></extra>',
-            name='Essential Rentals'
+            name='Amenity-Packed Rentals'
         ))
     
-    # Cluster 1 - Amenity-Packed Rentals
+    # Cluster 1 - Essentials Rentals
     cluster1 = df[df['prediction_label'] == 1]
     if len(cluster1) > 0:
         fig.add_trace(go.Scattermapbox(
@@ -278,7 +278,7 @@ def scatter_map_(df, selected_state=None, selected_city=None):
             ]],
             hovertemplate=
                 '<b>%{customdata[0]}, %{customdata[1]}</b><br>' +
-                '<b>Amenity-Packed Rentals</b><br><br>' +
+                '<b>Essentials Rentals</b><br><br>' +
                 'Price: $%{customdata[2]:,.0f}<br>' +
                 'Sq Ft: %{customdata[3]:,.0f}<br>' +
                 '$/SqFt: $%{customdata[9]:.2f}<br><br>' +
@@ -287,7 +287,7 @@ def scatter_map_(df, selected_state=None, selected_city=None):
                 'Luxury: %{customdata[6]:.0f} | Convenience: %{customdata[7]:.0f}<br>' +
                 '<b>Total: %{customdata[8]:.0f}</b>' +
                 '<extra></extra>',
-            name='Amenity-Packed Rentals'
+            name='Essentials Rentals'
         ))
     
     fig.update_layout(
@@ -349,7 +349,7 @@ if len(filtered_df) > 0:
         st.metric(
             "Total Properties",
             f"{len(filtered_df):,}",
-            f"Budget: {budget_count:,} | Premium: {premium_count:,}"
+            f"Amenity-Packed: {budget_count:,} | Essentials: {premium_count:,}"
         )
     
     with col2:
@@ -360,7 +360,7 @@ if len(filtered_df) > 0:
             st.metric(
                 "Price Difference",
                 f"${abs(diff):,.0f}",
-                "Premium vs Budget"
+                "Amenity-Packed vs Essentials"
             )
         else:
             st.metric("Price Difference", "N/A")
@@ -392,8 +392,8 @@ if len(filtered_df) > 0:
         rows=1, cols=2,
         specs=[[{'type': 'pie'}, {'type': 'pie'}]],
         subplot_titles=[
-            f"<b>Essential Rentals</b><br><sup>{len(filtered_df[filtered_df['prediction_label']==0]):,} properties</sup>",
-            f"<b>Amenity-Packed Rentals</b><br><sup>{len(filtered_df[filtered_df['prediction_label']==1]):,} properties</sup>"
+            f"<b>Amenity-Packed Rentals</b><br><sup>{len(filtered_df[filtered_df['prediction_label']==0]):,} properties</sup>",
+            f"<b>Essentials Rentals</b><br><sup>{len(filtered_df[filtered_df['prediction_label']==1]):,} properties</sup>"
         ]
     )
     
@@ -459,7 +459,7 @@ with col2:
         cluster_data = filtered_df[filtered_df['prediction_label'] == cluster_id]
         if len(cluster_data) > 0:
             stats_list.append({
-                'Cluster': 'Budget' if cluster_id == 0 else 'Premium',
+                'Cluster': 'Amenity-Packed Rentals' if cluster_id == 0 else 'Essentials Rentals',
                 'Properties': len(cluster_data),
                 'Avg_Price': round(cluster_data['price'].mean(), 2),
                 'Avg_SqFt': round(cluster_data['square_feet'].mean(), 2),
