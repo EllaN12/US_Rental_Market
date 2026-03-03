@@ -7,53 +7,82 @@ Original file is located at
     https://colab.research.google.com/github/EllaC12345/Machine-Learning/blob/main/Project4.ipynb
 """
 #%%
+import os
 import pandas as pd
+import numpy as np
 from pathlib import Path
 from sklearn.cluster import KMeans, AgglomerativeClustering,Birch
 #!pip install matplotlib-venn
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 import seaborn as sns
-#!pip install hvplot
-#!pip install hvplot
-#!pip install pycaret
+
 
 #from bokeh.io import output_notebook
 import plotly.express as px
 
-
-
-
-#%%
-#pip install --upgrade pycaret
-
-#!pip uninstall scipy
-
-import numpy as np
-import pandas as pd
-import plotly.express as px
-import matplotlib.pyplot as plt
-import holoviews as hv
-#!pip install pycaret
-
+# importing the KMeans module from SKLEArn
+from sklearn.cluster import KMeans
+from sklearn import __version__ as sklearn_version
+from distutils.version import LooseVersion
+from sklearn.cluster import KMeans
 
 
 # Clustering & PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
 from sklearn.decomposition import PCA
-from sklearn.cluster import KMeans
+
 
 # Machine Learning
+from pycaret.clustering import *
 import pycaret.classification as clf
 from xgboost import plot_importance
 
 #%%
+#
+import os
+import holoviews as hv
+
+import numpy as np
+import pandas as pd
+import plotly.express as px
+import matplotlib.pyplot as plt
+import holoviews as hv
+
+#rom holoviews import opts
+#import hvplot.pandas
+#import geoviews as gv
+#import geoviews.tile_sources as gvts
+#hv.extension("bokeh")
+#import cartopy.crs as ccrs
+
+
+
+
+
+
+#%%
+#from sqlalchemy import create_engine
+#import sqlite3
+#import pandas as pd
+
+#from sqlalchemy import create_engine, Column, Integer, String, Float, Text
+#from google.colab import files
+
+
+#%%
 ## Read the csv files
-file_name = '/Users/ellandalla/Desktop/Portfolio/Unsupervised/apartments_for_rent_classified_100K.csv'
-rent_df = pd.read_csv(file_name, sep=";", encoding="latin-1")
+print("Current working directory:", os.getcwd())
+db_path = 'SRC/Analysis.py'
+resolved_db_path = os.path.abspath(db_path)
+
+file_name = '/Raw_data/apartments_for_rent_classified_100K.csv'
+raw_data_path = os.getcwd() + file_name
+rent_df = pd.read_csv(raw_data_path, sep=";", encoding="latin-1")
 
 rent_df.head()
 
+#%%
 ## Create distinct  appartment types based on the number of bedrooms and bathrooms
 
 rent_df["apartmemt Category"] = rent_df['bedrooms'].astype(str) + ' BR ' + rent_df['bathrooms'].astype(str) + ' BA'
@@ -88,7 +117,7 @@ category_data_df = rent_df[category_columns]
 numerical_data_df = rent_df[numerical_columns]
 
 
-
+#%%
 #Category data profiling
 def numeric_profile_data(data):
     """Panda Profiling Function
@@ -148,7 +177,7 @@ category_profile_data(rent_df)
 
 
 
-## Data Cleaning
+## Data Cleaning and Feature Engineering
 #%%
 unique_amenities= list(rent_df['amenities'].unique())
 
@@ -173,9 +202,10 @@ amenities_df = rent_df['amenities'].str.split(',').explode()
 # Count the occurrences of each amenity
 amenities_counts = amenities_df.value_counts()
 
-# Display the result
+# Display the results
 print(amenities_counts)
 
+#%%
 ## create categories of amenities to incorporate them into the analysis
 outdoor = ['Patio/Deck', 'Clubhouse', 'Playground']
 sports = ['Pool','Gym', 'Tennis', 'Basketball', 'Golf']
@@ -194,10 +224,8 @@ rent_df['sports_count'] = rent_df['amenities'].str.count(pattern2)
 rent_df['luxury_count'] = rent_df['amenities'].str.count(pattern3)
 rent_df['convenience_count'] = rent_df['amenities'].str.count(pattern4)
 
-# Count the number of occurrences of items in the outdoor list in the 'amenities' column
-#lst = ['convenience']
-#rent_df = rent_df.drop(lst, axis=1)
 
+#%%
 # Display the DataFrame with the new columns
 rent_df.head()
 
@@ -225,8 +253,6 @@ rent_df.info()
 
 ## Managing Missing Values
 #%%
-
-
 # categorical columns
 category_columns = rent_df.select_dtypes(include = ['object']).columns.tolist()
 numerical_columns = rent_df.select_dtypes(include=[np.number]).columns.tolist()
@@ -351,14 +377,14 @@ cat_df
 # Concatenate the df_shopping_transformed and the card_dummies DataFrames
 feature_df = pd.concat([rent_df.reset_index(drop=True), cat_df.reset_index(drop=True)], axis=1)
 
-# Drop the original education column
+# Drop the original apartment category column
 feature_df = feature_df.drop(columns=['apartmemt Category', 'cityname', 'state', 'id'])
 
 # Display the DataFrame
 feature_df.head()
 
 
-
+#Applyig StandardScaler to the feature DataFrame
 #%%
 
 feature_df_scaled = StandardScaler().fit_transform(feature_df[["price", "square_feet", "latitude", "longitude"]])
@@ -383,11 +409,6 @@ feature_df
 #Finding K using the Elbow Method
 #%%
 
-# importing the KMeans module from SKLEArn
-from sklearn.cluster import KMeans
-from sklearn import __version__ as sklearn_version
-from distutils.version import LooseVersion
-from sklearn.cluster import KMeans
 
 #create a list to store inertia values of k
 inertia = []
@@ -400,6 +421,7 @@ for i in k:
   k_model = KMeans(n_clusters=i, random_state =0)
   k_model.fit(feature_df)
   inertia.append(k_model.inertia_)
+  
 
 ## define the dataframe to hold the values for k and the corresponding inertia
 elbow_data = {'k': k, "inertia": inertia}
@@ -433,9 +455,10 @@ feature_predictions_df.head()
 
 # Plot the clusters
 
+sns.scatterplot(x="square_feet", y = "price", data = feature_predictions_df, hue = "rent_segments")
 
-#sns.scatterplot(x="square_feet", y = "price", data = feature_predictions_df, hue = "rent_segments")
-
+#Determine model inertia
+#%% 
 """Reperform the Clustering techniques using Principal Components Analysis (PCA).
 In this section I will reduce the dimensionality of the transformed Feature DataFrame to 3 principal components
 """
@@ -516,8 +539,6 @@ feature_pca_predictions_df["rent_segments"] = k_2
 
 #%%
 ## Plot the segments
-import os
-import holoviews as hv
 
 """os.environ['HV_DOC_HTML'] = 'true'
 hv.extension('bokeh')
@@ -559,7 +580,7 @@ Although the rentals are still segmented in the same amount of clusters. The PCA
 ## set up and configure the environment for training and evaluating the model
 from pycaret.clustering import *
 
-#s = setup(data, normalize = True, ignore_features = ['CUST_ID'], session_id = 145, silent = True)
+
 clf.setup(
     data=feature_pca_predictions_df,
     target='rent_segments',
@@ -613,8 +634,8 @@ df_predictions = clf.predict_model(
         raw_score=False
     )
 
-df_predictions
-
+print (df_predictions['rent_segments'].value_counts()) 
+print (df_predictions['prediction_label'].value_counts())
 #%%
 # 5.0 FEATURE IMPORTANCE (TOP FEATURES) -----
 #  * BENEFIT OF MACHINE LEARNING using feature dataframe is that we can see the most important features in the model and draw insights from each cluster.
@@ -668,7 +689,7 @@ luxury_count = cluster_1['luxury_count'].median()
 print(luxury_count)
 
 
-#pip install --upgrade scipy
+
 
 #%%
 ##Keeping essential columns for analysis
@@ -677,8 +698,9 @@ snip_df[['cityname', 'state']] = rent_df[['cityname', 'state']]
 snip_df
 
 
-snip_df.to_json('/Users/ellandalla/Desktop/Portfolio/Unsupervised/data.json', orient='records')
-snip_df.to_csv('/Users/ellandalla/Desktop/Portfolio/Unsupervised/data.csv')
+snip_df.to_csv('SRC/final_data.csv')
+file_name = '/SRC/final_data.csv'
+final_data  = os.getcwd() + file_name
 #%%
 
 
@@ -688,58 +710,12 @@ category_profile_data(analysis_df)
 
 
 
-#!pip install holoviews
-#!pip install cartopy
-#!pip install geoviews
-import holoviews as hv
-from holoviews import opts
-import hvplot.pandas
 
-import geoviews as gv
-#import geoviews.tile_sources as gvts
-hv.extension("bokeh")
-import cartopy.crs as ccrs
-
-# Define the color mapping
-color_mapping = {'0': 'blue', '1': 'orange'}
-
-map_plot = snip_df.hvplot.points(
-    "longitude",
-    "latitude",
-    geo = True,
-    tiles = "OSM",
-    frame_width = 1000,
-    frame_height = 800,
-    size = "(square_feet)",
-    color = "prediction_label",
-    cmap=color_mapping,
-    tools=['box_zoom'],
-    hover_cols=["cityname", "state"],
-)
-# Display the plot in Colab
-hv.output(notebook='bokeh')
-map_plot
-
-# Display the HTML file
-#from IPython.display import HTML
-#HTML(filename='map_plot.html')
 
 #%%
-#!pip install sqlalchemy pandas
-from sqlalchemy import create_engine
-import sqlite3
-import pandas as pd
 
-from sqlalchemy import create_engine, Column, Integer, String, Float, Text
-from google.colab import files
 
-# Define connection and the cursor
 
-connection = sqlite3.connect('rentals.db')
-cursor = connection.cursor()
-
-# Drop the existing table if it exists
-cursor.execute("DROP TABLE IF EXISTS rentals")
 
 
 
