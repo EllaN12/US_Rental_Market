@@ -54,6 +54,6 @@ The American rental market is predominantly a Cluster 0 (Essential Rentals) mark
 
 **Interactive Dashboard:**
 
-An interactive Streamlit dashboard is available at: https://ellac12345.github.io/US_Rental_Market/
+An interactive Streamlit dashboard is available at: https://ellan12-us-rental-market-srcapp-ujvkpx.streamlit.app/
 
 The dashboard allows users to filter by state, city, price range, and cluster to explore property distribution on a map and view amenity composition by segment.
