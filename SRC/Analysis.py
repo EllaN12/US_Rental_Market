@@ -49,26 +49,6 @@ import plotly.express as px
 import matplotlib.pyplot as plt
 import holoviews as hv
 
-#rom holoviews import opts
-#import hvplot.pandas
-#import geoviews as gv
-#import geoviews.tile_sources as gvts
-#hv.extension("bokeh")
-#import cartopy.crs as ccrs
-
-
-
-
-
-
-#%%
-#from sqlalchemy import create_engine
-#import sqlite3
-#import pandas as pd
-
-#from sqlalchemy import create_engine, Column, Integer, String, Float, Text
-#from google.colab import files
-
 
 #%%
 ## Read the csv files
